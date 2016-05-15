@@ -1,0 +1,18 @@
+<table>
+	<thead>
+    		<th>Coupon Id</th>
+    		<th>Description</th>
+    		<th>Validity</th>
+    		<th>Category</th>
+    		<th>Discount Percentage</th>
+  	</thead>
+	<br>
+	<form method="POST" action="/confirm">
+		{% for item in data["CouponCode"] %}
+				<tr>
+				    <td><input type="text" name="item" value={{ row }} readonly></td>
+    			</tr>
+		{% endfor %}
+		<td><input type="submit" value="Order"></td>
+	</form>
+</table> 

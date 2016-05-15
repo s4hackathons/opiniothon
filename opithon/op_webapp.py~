@@ -1,0 +1,205 @@
+from flask import Flask, render_template, request, redirect, url_for, abort, session
+from flaskext.mysql import MySQL
+import json
+from datetime import date, timedelta, datetime
+
+app = Flask(__name__)
+mysql = MySQL()
+
+USERID = ""
+
+app.config['MYSQL_DATABASE_USER'] = 'opinio'
+app.config['MYSQL_DATABASE_PASSWORD'] = "Opinio@123"
+app.config['MYSQL_DATABASE_DB'] = 'opinio_db'
+app.config['MYSQL_DATABASE_HOST'] = '172.31.99.109'
+mysql.init_app(app)
+
+def createFood():
+    food = []
+    food.append( 'Veggies' )
+    food.append( 'Breads')
+    food.append( 'Desserts' )
+    food.append( 'Chinese' )
+    food.append( 'Beverages' )
+    #return json.dumps(food)
+    return food
+
+categories = createFood()
+Veggies = [ 'ShahiPaneer', 'Mushroom', 'DalMakhani', 'PaneerPyaza' ]
+Breads = [ 'Naan', 'Kulcha', 'Roti', 'Phulka', 'Paratha' ]
+Desserts = [ 'GulabJamun', 'Rasgulla', 'IceCream' ]
+Chinese = [ 'Noodles', 'Choupsey', 'Momos', 'Haka-Noodles' ]
+Beverages = [ 'Coke', 'LimeWater', 'FruitPunch', 'LichiJuice' ]
+
+def check_categ( cat ):
+    if cat == 'Veggies':
+        return Veggies
+    elif cat == 'Breads':
+        return Breads
+    elif cat == 'Desserts':
+        return Desserts
+    elif cat == 'Chinese':
+        return Chinese
+    elif cat == 'Beverages':
+        return Beverages
+
+finalOrder = []
+def finalOrder( obj ):
+    order =  obj.split(',')
+    cat = "";
+    print order
+    if order[0] == '':
+        return
+    elif order[0] in Veggies:
+        cat = "Veggies"
+    elif order[0] in Chinese:
+        cat = "Chinese"
+    elif order[0] in Beverages:
+        cat = "Beverages"
+    elif order[0] in Breads:
+        cat = "Breads"
+    elif order[0] in Desserts:
+        cat = "Desserts"
+    print cat
+
+@app.route('/order_placed', methods=['POST', 'GET'])
+def order_placed():
+	if request.method == 'GET':
+		_id = str(request.args.get("userId"))
+		_category = str(request.args.get("category"))
+		_timestamp = str(request.args.get("timestamp"))
+		print _category, _id, _timestamp
+		conn = mysql.get_db()
+		cur = conn.cursor()
+
+		# If user with category present
+		query = "SELECT count from pastorder WHERE ID = %r and CATEGORY = %r" % (_id, _category)
+
+		try:
+			cur.execute(query)
+			_count = 1
+			print "rowcount", cur.rowcount
+			if cur.rowcount != 0:
+				data = cur.fetchall()
+				for row in data:
+					_count = row[0]
+				_count = int(_count) + 1
+				_count = _count%100
+				query = "UPDATE pastorder SET count = %r WHERE ID = %r and CATEGORY = %r" % (_count, _id, _category)
+			else:
+				query = "INSERT INTO pastorder VALUES (%r, %r, %r, %r)" % (_id, _category, int(_count), _timestamp)
+			cur.execute(query)
+		except Exception, e:
+			return "ERROR" + str(e)
+		finally:
+			conn.commit()
+		return "YES"
+
+@app.route('/items_checked', methods=['POST', 'GET'])
+def check_items():
+	if request.method == 'POST':
+		_id = str(request.args.get("userId"))
+		_category = str(request.args.get("category"))
+		_timespent = str(request.args.get("timeSpent"))
+		_timestamp = str(request.args.get("timestamp"))
+		
+		print _id, _category, _timespent, _timestamp
+
+		conn = mysql.get_db()
+		cur = conn.cursor()
+
+		# If user with category present
+		query = "SELECT count from TIMESPENT WHERE ID = %r and CATEGORY = %r" % (_id, _category)
+
+		try:
+			cur.execute(query)
+			_focustime = _timespent
+			if cur.rowount != 0:
+				_focustime += int(cur.fetchall())
+				_focustime = _focustime%100
+				query = "UPDATE TIMESPENT SET focustime = %r WHERE ID = %r and CATEGORY = %r" % (_focustime, _id, _category)
+			else:
+				query = "INSERT INTO TIMESPENT VALUES (%r, %r, %r, %r)" % (_id, _category, _focustime, _timestamp)
+			cur.execute(query)
+		except Exception, e:
+			return "ERROR" + str(e)
+		finally:
+			conn.commit()
+		return “Yes”
+
+@app.route('/register', methods=['POST', 'GET'])
+def register_page():
+	if request.method == 'GET':
+		return render_template('register.html')
+
+	if request.method == 'POST':
+		print "YES!!!!"
+		_email =  str(request.form["email"])
+		_mobile_no = str(request.form["mobile_no"])
+		_passwd = str(request.form["password"])
+
+		if _email and _mobile_no and _passwd :
+			conn = mysql.get_db()
+			cur = conn.cursor()
+			print "inserting user data"
+			query  = "INSERT INTO customers VALUES (%r, %r, %r);" % (_mobile_no, _email, _passwd)
+
+			try:
+				cur.execute(query)
+				conn.commit()
+			except Exception, e:
+				return "ERROR" + str(e)
+			else:
+				return render_template("register_success.html")
+
+
+@app.route('/order', methods=['GET', 'POST'])
+def order():
+    finalOrder( str( request.form["order"] ) )
+    return "Yes"
+
+@app.route( '/menu', methods=['GET','POST'] )
+def menu_page():
+    if request.method == 'GET':
+        return render_template('menu.html', categ=categories )
+    elif request.method == 'POST':
+        items = check_categ( str( request.form["category"] ) )
+        print items
+        print str( request.form["category"] )
+        global USERID
+        print USERID
+        return render_template( 'temp.html', categName = str( request.form["category"] ), items=items, userid=USERID )
+\
+
+@app.route('/', methods=['POST', 'GET'])
+def home_page():
+	if request.method == 'GET':
+		return render_template('login.html')
+
+	if request.method == 'POST':
+		_emailid = str(request.form["email"])
+		_passwd = str(request.form["password"])
+
+		conn = mysql.get_db()
+		cur = conn.cursor()
+
+		# If user with category present
+		query = "SELECT * from customers WHERE email_id = %r and password = %r" % (_emailid, _passwd)
+
+		try:
+			cur.execute(query)
+			print "rowcount", cur.rowcount
+			if cur.rowcount != 0:
+				global USERID
+                                print _emailid
+				USERID = _emailid
+                                print USERID
+				return redirect(url_for('menu_page'))
+			else:
+				return render_template("failure.html")
+		except Exception, e:
+			return "ERROR" + str(e)
+
+
+if __name__ == '__main__':
+	app.run(host='0.0.0.0',debug=True)

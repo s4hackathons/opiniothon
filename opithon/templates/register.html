@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Opinio Web App{% endblock %}
+{% block body %}
+  <h2>Sign Up</h2>
+  <form action="/register" method="post">
+    <dl>
+      <dt>E-Mail:
+      <dd><input type="text" name="email" size="30" value="{{ request.form.email }}">
+      <dt>Password:
+      <dd><input type="password" name="password" size="30">
+      <dt>Mobile:
+      <dd><input type="text" name="mobile_no" size="30">
+    </dl>
+    <div class="actions"><input type="submit" value="Register"></div>
+  </form>
+{% endblock %}

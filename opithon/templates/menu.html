@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+     <head>
+     <title>Food-Menu</title>
+     <meta charset="utf-8">
+     <link rel = "icon" href="{{ url_for('static', filename = 'images/favicon.ico') }}">
+     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+     </head>
+     <body class="page1">
+<style type="text/css">
+.img { 
+   position: relative; 
+   width: 80%; /* for IE 6 */
+   height: 200px;
+}
+
+.block { 
+   position: absolute; 
+   top: 75px; 
+   left: 0; 
+   width: 100%; 
+   font-size: 50px;
+   color: white;
+}
+</style>
+<!--==============================header=================================-->
+ <header> 
+  <div class="container_12">
+    </div>
+  <img src= {{ url_for('static', filename = 'images/logo.png') }} 
+    <div class="menu_block">
+  </div>
+ <div class="clear"></div>
+
+</header>
+
+<!--==============================Content=================================-->
+
+<form action="/menu" method="post">
+{% for row in categ %}
+<div class="block1">
+<img src= {{ url_for('static', filename = 'images/blur_img1.jpg') }} alt="" class="img">
+<span class="block" style="cursor:pointer;" name="category"><input type="submit" value={{row}} name="category"></span>
+</div>
+{% endfor %}
+
+</form>
+<!--==============================footer=================================-->
+
+<footer>    
+  <div class="container_12"></div>
+</body>
+</html>

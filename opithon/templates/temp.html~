@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+     <head>
+     <title>Menu</title>
+     <meta charset="utf-8">
+     <link rel = "icon" href="{{ url_for('static', filename = 'images/favicon.ico') }}">
+     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='touchTouch.css') }}">
+     </head>
+     <body  class="">
+<style type="text/css">
+.img {
+   position: relative;
+   width: 100%;
+   height: 200px;
+   margin: 0 0 10px 50px;
+}
+.block {
+   position: absolute;
+   top: 75px;
+   left: 0;
+   width: 100%;
+   padding: 2px 4px 2px 4px;
+   font-size: 25px;
+   color: white;
+}
+</style>
+
+<!---==============Script======================-->
+<script type="text/javascript">
+
+var order_items = new Array();
+
+function addItem(id) {
+  var dev = document.getElementsByClassName( "block" );
+   var span = dev[id];
+   var ele = span.innerHTML;
+   order_items.push(ele);
+  alert( order_items );
+}
+
+function getCurrentDate(){
+  var today = new Date();
+  var dd = today.getDate();
+var mm = today.getMonth()+1;
+//January is 0!
+var yyyy = today.getFullYear();
+if(dd<10)
+{
+dd='0'+dd
+} if(mm<10)
+{ mm='0'+mm
+}
+today = mm+'/'+dd+'/'+yyyy;
+//document.write(today);
+ return today;
+}
+function httpGet(theUrl)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.send();
+    console.log("done");
+   // return xmlHttp.responseText;
+}
+function returnCart() {
+   categ = document.getElementById( "category" ).value;
+var url = "http://172.31.99.109:5000/order_placed?userId=fgf66777&category="+categ+"&timestamp="+getCurrentDate();
+   document.getElementById("myText").value = order_items;
+   httpGet(url);
+
+}
+</script>
+
+<!--==============================header=================================-->
+ <header> 
+  <div class="container_12"></div>
+<img src= {{ url_for('static', filename = 'images/logo.png') }}
+<div class="menu_block"></div>
+ <div class="clear"></div>
+</header>
+
+<div class="container_12">
+<form action="/order" method="post" id="form1">
+<input type="text" id="myText" name="order" value="">
+</form>
+
+<button type="submit" form="form1" onclick="returnCart()">Order Food</button>
+</div>
+
+<!--==============================Content=================================-->
+
+  <div class="container_12">
+    <div class="grid_12">
+      <h3 class="head2">Our Menu</h3>
+    </div>  
+             <div class="div-tabs">
+              <div  id="tab-1" class="tab-content gallery1">
+		<input type = "hidden" id="category" value="{{categName}}"></div>
+		  {% for row in items %}
+		<div class="block1" style="float:left; width:100 px">
+		    <img src= {{ url_for('static', filename = 'images/page3_img1.jpg') }} class="img">
+		    
+			 <span id="{{row}}" class="block" style="cursor:pointer;" name="item" onclick="addItem(this.id)">{{row}}</span>
+                  </div>
+		{% endfor %}
+              </div>
+
+             </div>
+  </div>
+
+<!--==================Footer=======================================-->
+<footer>    
+  <div class="container_12"></div>
+</body>
+</html>

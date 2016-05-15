@@ -1,0 +1,136 @@
+<html>
+<head>
+</head>
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+</style>
+<script>
+function showAllDiscounts(){
+
+  // Will call API in python which will fetch all discounts from Database
+  var json_data = getDiscounts();
+  console.log(json_data);
+  var x = json_data;
+  var ul = document.getElementById("ulist");
+  
+  for(var i = 0; i < x.discountDetails.length; i++){
+ 
+    var li = document.createElement("li");
+    console.log("5657" + x.discountDetails[i].CouponCode + "---" + x.discountDetails[i].Description);
+    li.appendChild(document.createTextNode(x.discountDetails[i].CouponCode + "---" + x.discountDetails[i].Description));
+    ul.appendChild(li);
+  }
+  
+ 
+}
+
+function getDiscounts(){
+  console.log("1");
+  var url = "http://localhost:5000/discount";
+   var x = httpGet(url);
+  return x;
+}
+function discountDetails(){
+  // add elements to discountInfo
+  // add discount to validDiscounts
+   var x = document.getElementById("userId").value;
+   var results = addDiscountInfo(x);
+   addValidDiscounts(x, results);
+}
+
+function addDiscountInfo(x){
+  // To get Data {CouponCode : "", CouponScore : ""}
+  console.log("userId" + x);
+
+  var url = "http://localhost:5000/discountDetails?userId="+x;
+  var results = httpGet(url);
+  var table = document.getElementById("discountInfo");
+  for(var j = 0; j < results.discountDetails.length; j++){
+      var row = table.insertRow(0);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    cell1.innerHTML = results.discountDetails[j].CouponCode;
+    cell2.innerHTML = results.discountDetails[j].CouponScore;
+  }
+  
+  return results;
+}
+
+function addValidDiscounts(x, results){
+  console.log("userId" + x);
+  //["A", "B", "C"]
+  var validDiscounts = calculateValidDiscounts(results);
+   var table = document.getElementById("validDiscounts");
+  for(var i = 0; i < validDiscounts.length; i++){
+    var row = table.insertRow(0);
+    var cell1 = row.insertCell(0);
+    cell1.innerHTML = validDiscounts[i];
+  }
+}
+
+function calculateValidDiscounts(results){
+  var result = [];
+  console.log("Testing" + results.discountDetails.length);
+  for(var j = 0; j < results.discountDetails.length; j++){
+      if(results.discountDetails[j].CouponScore >= 0.5){
+          result.push(results.discountDetails[j].CouponCode);
+      }
+  }
+  return result;
+}
+</script>
+
+<body>
+<h1 align="center"><b><u>CRM Admin Platform</u></b></h1>
+<div>
+
+<button align="left" onClick="showAllDiscounts()">Show Discounts</button>
+<ul id="ulist"></ul>
+
+<div align="center">
+<h2>UserId:</h2> <input type="text" id="userId" value=""><br>
+<!--Last name: <input type="text" name="LastName" value="Mouse"><br>-->
+<button id="submit" onClick="discountDetails()">submit</button>
+<hr>
+</div>
+</div>
+<div align="center">
+<hr>
+<table id="discountInfo" style="width:100%">
+<tr>
+<th>CouponCode</th>
+<th>Score</th>
+</tr>
+</table>
+<hr>
+<table id="validDiscounts" style="width:100%">
+<tr>
+<th>Vaild Discounts</th>
+</tr>
+</table>
+<hr>
+<button align="center" id="push">Push Notification</buttom>
+</div>
+</body>
+<script>
+function httpGet(theUrl)
+{
+    console.log("2");
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.send();
+    console.log("3");
+    //console.log(xmlHttp.responseText);
+    console.log("4e");
+    //console.log(JSON.parse(xmlHttp.responseText));
+    return JSON.parse(xmlHttp.responseText);
+    
+}
+</script>
+</html>
